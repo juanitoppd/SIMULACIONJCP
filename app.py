@@ -200,44 +200,41 @@ def process_bulk_items(items: list, output_dir: str = 'resultados') -> str:
 
 @app.route('/upload', methods=['POST'])
 def upload():
-    # Accept file upload or pasted text
-    file = request.files.get('file')
+    # Accept only JSON (pasted or uploaded) for batch processing
     bulk_text = request.form.get('bulk_text', '').strip()
+    file = request.files.get('file')
     items = []
     try:
         if file and file.filename:
             content = file.read().decode('utf-8')
-            # try parse CSV
-            import csv as _csv
-            reader = _csv.DictReader(content.splitlines())
-            for row in reader:
-                params = {k: float(v) if '.' in v or v.isdigit() else v for k,v in row.items() if v is not None}
-                # cast specific fields
-                for key in ('c','n'):
-                    if key in params:
-                        params[key] = int(float(params[key]))
-                items.append(params)
+            try:
+                parsed = json.loads(content)
+                if isinstance(parsed, list):
+                    items = parsed
+                elif isinstance(parsed, dict):
+                    items = [parsed]
+                else:
+                    flash('Archivo JSON debe contener una lista o un objeto.', 'danger')
+                    return redirect(url_for('index'))
+            except Exception:
+                flash('Archivo subido no es JSON válido. Usa JSON para lote.', 'danger')
+                return redirect(url_for('index'))
         elif bulk_text:
-            # try JSON first
             try:
                 parsed = json.loads(bulk_text)
                 if isinstance(parsed, list):
                     items = parsed
                 elif isinstance(parsed, dict):
                     items = [parsed]
+                else:
+                    flash('JSON debe ser una lista o un objeto.', 'danger')
+                    return redirect(url_for('index'))
             except Exception:
-                # assume CSV text
-                import csv as _csv
-                reader = _csv.DictReader(bulk_text.splitlines())
-                for row in reader:
-                    params = {k: float(v) if '.' in v or v.isdigit() else v for k,v in row.items() if v is not None}
-                    for key in ('c','n'):
-                        if key in params:
-                            params[key] = int(float(params[key]))
-                    items.append(params)
+                flash('Texto no es JSON válido. Usa JSON para lote.', 'danger')
+                return redirect(url_for('index'))
 
         if not items:
-            flash('No se encontraron parámetros en el archivo o texto.', 'danger')
+            flash('No se encontraron parámetros JSON para procesar.', 'danger')
             return redirect(url_for('index'))
 
         # start background thread for batch
