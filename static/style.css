@@ -1,28 +1,67 @@
 :root{
-  --bg:#f6f8fa;
+  --bg:#f3f6fb;
   --card:#ffffff;
   --accent:#1769aa;
-  --muted:#666;
+  --accent-2:#1e8bd8;
+  --accent-3:#114b6b;
+  --muted:#5f6b73;
+  --success:#2ea44f;
+  --danger:#d73a49;
+  --soft:#f4f7fb;
 }
-body{font-family:Arial,Helvetica,sans-serif;background:var(--bg);margin:0;color:#222}
-.container{max-width:1100px;margin:20px auto;padding:16px}
-header h1{margin:.2rem 0}
-main{display:flex;gap:16px}
-.panel{background:var(--card);padding:12px;border-radius:6px;box-shadow:0 1px 3px rgba(0,0,0,.06);}
-.form-panel{flex:1;min-width:300px}
+
+body{font-family:Inter,Arial,Helvetica,sans-serif;background:var(--bg);margin:0;color:#222}
+.container{max-width:1100px;margin:20px auto;padding:18px}
+
+/* Header */
+.site-header{margin-bottom:18px}
+.brand{display:flex;align-items:center;gap:12px}
+.logo{width:84px;height:auto;border-radius:8px}
+.site-header h1{margin:.1rem 0;font-size:22px}
+.lead{margin:0;color:var(--muted)}
+
+main{display:flex;gap:18px}
+.panel{background:var(--card);padding:16px;border-radius:8px;box-shadow:0 6px 18px rgba(23,105,170,0.06);}
+.form-panel{flex:1;min-width:320px}
 .results-panel{flex:2}
-label{display:block;margin:8px 0;font-size:14px}
-input[type=number]{width:100%;padding:8px;border:1px solid #ddd;border-radius:4px}
-.buttons{margin-top:12px}
-.primary{background:var(--accent);color:#fff;padding:8px 12px;border:none;border-radius:4px;cursor:pointer}
-.images{display:flex;flex-wrap:wrap;gap:12px;margin-top:12px}
-.thumb{width:200px;background:#fff;padding:6px;border:1px solid #eee;border-radius:6px;text-align:center}
-.thumb img{max-width:100%;height:120px;object-fit:contain}
-.fname{font-size:12px;color:var(--muted);margin-top:6px}
+
+/* Card header */
+.panel h2{margin-top:0;color:var(--accent-3);font-size:18px}
+.panel h3{color:var(--accent);margin-bottom:8px}
+
+.card-header{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #eef4fa;padding-bottom:8px;margin-bottom:12px}
+
+label{display:block;margin:10px 0;font-size:14px}
+input[type=number], input[type=text], textarea, input[type=file]{width:100%;padding:10px;border:1px solid #e3e8ee;border-radius:6px;box-sizing:border-box}
+.buttons{margin-top:14px;display:flex;gap:8px}
+.primary{background:var(--accent);color:#fff;padding:10px 14px;border:none;border-radius:6px;cursor:pointer}
+.primary:hover{opacity:.95}
+.secondary{background:#f0f4f8;border:1px solid #e3e8ee;padding:10px 12px;border-radius:6px}
+
+/* Accent outline button */
+.btn-outline{background:transparent;border:2px solid var(--accent);color:var(--accent);padding:8px 12px;border-radius:6px}
+.btn-outline:hover{background:var(--accent);color:#fff}
+
+.images{display:flex;flex-wrap:wrap;gap:14px;margin-top:12px}
+.thumb{width:180px;background:#fff;padding:8px;border:1px solid #f1f5f9;border-radius:8px;text-align:center}
+.thumb img{max-width:100%;height:120px;object-fit:contain;border-radius:4px}
+.fname{font-size:12px;color:var(--muted);margin-top:8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+.placeholder{display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,var(--soft),#fff);border:1px dashed #e6eef8;height:120px;border-radius:6px;color:#9fb5d6}
+
 .metrics ul{list-style:none;padding:0;margin:0}
-.flash-list .flash{padding:8px;border-radius:4px;margin-bottom:8px}
+.metrics li{padding:6px 0;border-bottom:1px dashed #f2f4f6}
+.download{display:inline-block;margin-top:8px;background:#f7fbff;border:1px solid #dbeaf6;padding:8px 10px;border-radius:6px;color:var(--accent);text-decoration:none}
+.download:hover{text-decoration:underline}
+
+.batch-download a{color:var(--accent);text-decoration:none}
+
+.status{padding:8px;border-radius:6px;background:#fff;border:1px solid #eef6fb;margin-bottom:8px}
+
+.flash-list .flash{padding:10px;border-radius:6px;margin-bottom:10px}
 .flash.success{background:#e6ffed;border:1px solid #b6f0c9}
 .flash.danger{background:#ffe9e9;border:1px solid #f2b6b6}
-footer{margin-top:12px;font-size:13px;color:var(--muted)}
 
-@media(max-width:900px){main{flex-direction:column}}
+footer{margin-top:18px;font-size:13px;color:var(--muted)}
+
+@media(max-width:900px){main{flex-direction:column} .brand{justify-content:center;text-align:center} .logo{width:64px}}
