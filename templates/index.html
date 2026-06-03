@@ -58,14 +58,19 @@
           </form>
 
           <hr />
-          <h3>Procesamiento por lotes (JSON)</h3>
-          <p>Pega aquí un arreglo JSON con objetos de parámetros: <code>[{"lmbda":10,"mu":4,"c":3,"t_sim":480,"t_warm":60,"n":30}]</code> o sube un archivo JSON.</p>
-          <form action="{{ url_for('upload') }}" method="post" enctype="multipart/form-data">
-            <label>Archivo JSON (opcional)
-              <input name="file" type="file" accept="application/json,.json" />
+          <h3>Procesamiento por lotes (CSV / JSON)</h3>
+          <p>Puedes subir un archivo CSV o JSON, o pegar aquí el contenido CSV/JSON con una lista de casos.</p>
+          <p>Ejemplo JSON: <code>[{"lmbda":10,"mu":4,"c":3,"t_sim":480,"t_warm":60,"n":30}]</code></p>
+          <p>Ejemplo CSV:</p>
+          <pre>lmbda,mu,c,t_sim,t_warm,n
+10,4,3,480,60,30
+12,5,4,360,45,20</pre>
+          <form id="batchForm" action="{{ url_for('upload') }}" method="post" enctype="multipart/form-data">
+            <label>Archivo CSV o JSON (opcional)
+              <input name="file" type="file" accept=".csv,application/json,.json" />
             </label>
-            <label>Pegar contenido JSON
-              <textarea name="bulk_text" rows="6" placeholder='[ {"lmbda":10,"mu":4,"c":3,"t_sim":480,"t_warm":60,"n":30} ]'></textarea>
+            <label>Pegar contenido CSV o JSON
+              <textarea id="bulkText" name="bulk_text" rows="8" placeholder='[ {"lmbda":10,"mu":4,"c":3,"t_sim":480,"t_warm":60,"n":30} ]\n\nlmbda,mu,c,t_sim,t_warm,n\n10,4,3,480,60,30'></textarea>
             </label>
             <div class="buttons">
               <button type="submit" class="primary">Enviar lote</button>
@@ -76,7 +81,7 @@
         <section class="panel results-panel">
           <h2>Resultados</h2>
           <div id="statusBox" class="status">
-            Estado: <span id="statusPhase">idle</span> - <span id="statusMsg"></span>
+            Estado: <span id="statusPhase">inactivo</span> - <span id="statusMsg"></span>
           </div>
           {% if metrics %}
             <div class="metrics">
@@ -106,7 +111,7 @@
               {% endfor %}
             {% else %}
               <div class="thumb placeholder">
-                <img src="/static/images/placeholder.svg" alt="placeholder" />
+                <img src="/static/images/placeholder.svg" alt="imagen de marcador" />
                 <div class="fname">Sin imágenes generadas</div>
               </div>
             {% endif %}
@@ -151,7 +156,7 @@
       }
       setInterval(pollStatus, 2000);
       pollStatus();
-      // initial gallery & metrics load
+      // carga inicial de galería y métricas
       refreshGallery();
       refreshMetrics();
 
@@ -197,10 +202,43 @@
             }
           } else {
             const ph = document.createElement('div'); ph.className = 'thumb placeholder';
-            ph.innerHTML = '<img src="/static/images/placeholder.svg" alt="placeholder" /><div class="fname">Sin imágenes generadas</div>';
+            ph.innerHTML = '<img src="/static/images/placeholder.svg" alt="imagen de marcador" /><div class="fname">Sin imágenes generadas</div>';
             container.appendChild(ph);
           }
         }catch(e){console.error(e)}
+      }
+
+      document.getElementById('batchForm').addEventListener('submit', function(event) {
+        const fileInput = this.querySelector('input[name="file"]');
+        const bulkText = document.getElementById('bulkText').value.trim();
+
+        if (!fileInput.files.length && !bulkText) {
+          alert('Agrega un archivo CSV/JSON o pega contenido CSV/JSON antes de enviar el lote.');
+          event.preventDefault();
+          return;
+        }
+
+        if (!fileInput.files.length && bulkText) {
+          if (!isValidBatchInput(bulkText)) {
+            alert('El contenido no parece ser CSV o JSON válido. Corrige el formato y vuelve a intentar.');
+            event.preventDefault();
+          }
+        }
+      });
+
+      function isValidBatchInput(text) {
+        try {
+          const trimmed = text.trim();
+          if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
+            JSON.parse(trimmed);
+            return true;
+          }
+          const lines = trimmed.split(/\r?\n/).filter(Boolean);
+          if (lines.length < 2) return false;
+          return lines[0].includes(',');
+        } catch (e) {
+          return false;
+        }
       }
     </script>
   </body>

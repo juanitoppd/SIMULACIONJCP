@@ -198,9 +198,53 @@ def process_bulk_items(items: list, output_dir: str = 'resultados') -> str:
     return zip_path
 
 
+def parse_batch_text(text: str) -> list:
+    text = text.strip()
+    if not text:
+        return []
+
+    if text[0] in '[{':
+        parsed = json.loads(text)
+        if isinstance(parsed, list):
+            return parsed
+        if isinstance(parsed, dict):
+            return [parsed]
+        raise ValueError('JSON debe ser una lista o un objeto.')
+
+    reader = csv.DictReader(text.splitlines())
+    items = []
+    for row in reader:
+        if not any(row.values()):
+            continue
+        params = {}
+        for key, value in row.items():
+            if value is None:
+                continue
+            value = value.strip()
+            if value == '':
+                continue
+            try:
+                num = float(value)
+                if num.is_integer():
+                    value = int(num)
+                else:
+                    value = num
+            except ValueError:
+                pass
+            params[key] = value
+        for key in ('c', 'n'):
+            if key in params:
+                try:
+                    params[key] = int(float(params[key]))
+                except Exception:
+                    pass
+        if params:
+            items.append(params)
+    return items
+
+
 @app.route('/upload', methods=['POST'])
 def upload():
-    # Accept only JSON (pasted or uploaded) for batch processing
     bulk_text = request.form.get('bulk_text', '').strip()
     file = request.files.get('file')
     items = []
@@ -208,37 +252,28 @@ def upload():
         if file and file.filename:
             content = file.read().decode('utf-8')
             try:
-                parsed = json.loads(content)
-                if isinstance(parsed, list):
-                    items = parsed
-                elif isinstance(parsed, dict):
-                    items = [parsed]
-                else:
-                    flash('Archivo JSON debe contener una lista o un objeto.', 'danger')
-                    return redirect(url_for('index'))
-            except Exception:
-                flash('Archivo subido no es JSON válido. Usa JSON para lote.', 'danger')
+                items = parse_batch_text(content)
+            except json.JSONDecodeError:
+                flash('Archivo subido no es JSON o CSV válido.', 'danger')
+                return redirect(url_for('index'))
+            except ValueError as e:
+                flash(str(e), 'danger')
                 return redirect(url_for('index'))
         elif bulk_text:
             try:
-                parsed = json.loads(bulk_text)
-                if isinstance(parsed, list):
-                    items = parsed
-                elif isinstance(parsed, dict):
-                    items = [parsed]
-                else:
-                    flash('JSON debe ser una lista o un objeto.', 'danger')
-                    return redirect(url_for('index'))
-            except Exception:
-                flash('Texto no es JSON válido. Usa JSON para lote.', 'danger')
+                items = parse_batch_text(bulk_text)
+            except json.JSONDecodeError:
+                flash('Texto no es JSON o CSV válido. Usa CSV o JSON para lote.', 'danger')
+                return redirect(url_for('index'))
+            except ValueError as e:
+                flash(str(e), 'danger')
                 return redirect(url_for('index'))
 
         if not items:
-            flash('No se encontraron parámetros JSON para procesar.', 'danger')
+            flash('No se encontraron parámetros para procesar en el lote.', 'danger')
             return redirect(url_for('index'))
 
-        # start background thread for batch
-        thread = threading.Thread(target=process_bulk_items, args=(items,'resultados'), daemon=True)
+        thread = threading.Thread(target=process_bulk_items, args=(items, 'resultados'), daemon=True)
         thread.start()
         flash(f'Lote iniciado ({len(items)} casos). Se generará resultados/batch_results.zip', 'success')
     except Exception as e:
