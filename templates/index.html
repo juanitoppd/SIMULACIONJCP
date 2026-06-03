@@ -58,13 +58,13 @@
           </form>
 
           <hr />
-          <h3>Procesamiento por lotes</h3>
-          <p>Puedes subir un archivo CSV con columnas: <code>lmbda,mu,c,t_sim,t_warm,n</code> o pegar JSON/CSV en el textarea.</p>
+          <h3>Procesamiento por lotes (JSON)</h3>
+          <p>Pega aquí un arreglo JSON con objetos de parámetros: <code>[{"lmbda":10,"mu":4,"c":3,"t_sim":480,"t_warm":60,"n":30}]</code> o sube un archivo JSON.</p>
           <form action="{{ url_for('upload') }}" method="post" enctype="multipart/form-data">
-            <label>Archivo CSV
-              <input name="file" type="file" accept=".csv" />
+            <label>Archivo JSON (opcional)
+              <input name="file" type="file" accept="application/json,.json" />
             </label>
-            <label>Pegar contenido CSV o JSON
+            <label>Pegar contenido JSON
               <textarea name="bulk_text" rows="6" placeholder='[ {"lmbda":10,"mu":4,"c":3,"t_sim":480,"t_warm":60,"n":30} ]'></textarea>
             </label>
             <div class="buttons">
