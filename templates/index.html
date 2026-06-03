@@ -60,8 +60,9 @@
           <hr />
           <h3>Procesamiento por lotes (CSV / JSON)</h3>
           <p>Puedes subir un archivo CSV o JSON, o pegar aquí el contenido CSV/JSON con una lista de casos.</p>
-          <p>Ejemplo JSON: <code>[{"lmbda":10,"mu":4,"c":3,"t_sim":480,"t_warm":60,"n":30}]</code></p>
-          <p>Ejemplo CSV:</p>
+          <p>Ejemplos de formatos compatibles:</p>
+          <p>JSON: <code>[{"lmbda":10,"mu":4,"c":3,"t_sim":480,"t_warm":60,"n":30}]</code></p>
+          <p>CSV:</p>
           <pre>lmbda,mu,c,t_sim,t_warm,n
 10,4,3,480,60,30
 12,5,4,360,45,20</pre>
@@ -115,9 +116,6 @@
                 <div class="fname">Sin imágenes generadas</div>
               </div>
             {% endif %}
-          </div>
-          <div class="batch-download">
-            <a href="/download_batch">Descargar resultados de lote (ZIP)</a>
           </div>
         </section>
       </main>
