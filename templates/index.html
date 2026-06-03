@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Simulación TechClassUC</title>
+    <link rel="stylesheet" href="/static/style.css" />
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>Simulación TechClassUC</h1>
+        <p>Ingresa parámetros manualmente y ejecuta la simulación.</p>
+      </header>
+
+      <main>
+        <section class="panel form-panel">
+          <h2>Parámetros</h2>
+          {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+              <div class="flash-list">
+                {% for category, msg in messages %}
+                  <div class="flash {{ category }}">{{ msg }}</div>
+                {% endfor %}
+              </div>
+            {% endif %}
+          {% endwith %}
+
+          <form action="{{ url_for('run') }}" method="post">
+            <label>Número de réplicas (n)
+              <input name="n" type="number" min="1" value="30" required />
+            </label>
+            <label>Tasa de llegada λ (clientes/hora)
+              <input name="lmbda" type="number" step="any" value="10.0" required />
+            </label>
+            <label>Tasa de servicio μ (clientes/hora)
+              <input name="mu" type="number" step="any" value="4.0" required />
+            </label>
+            <label>Número de servidores (c)
+              <input name="c" type="number" min="1" value="3" required />
+            </label>
+            <label>Duración simulación t_sim (min)
+              <input name="t_sim" type="number" step="any" value="480" required />
+            </label>
+            <label>Período calentamiento t_warm (min)
+              <input name="t_warm" type="number" step="any" value="60" required />
+            </label>
+
+            <div class="buttons">
+              <button type="submit" class="primary">Ejecutar simulación</button>
+              <button type="reset">Limpiar</button>
+            </div>
+          </form>
+        </section>
+
+        <section class="panel results-panel">
+          <h2>Resultados</h2>
+          <div id="statusBox" class="status">
+            Estado: <span id="statusPhase">idle</span> - <span id="statusMsg"></span>
+          </div>
+          {% if metrics %}
+            <div class="metrics">
+              <h3>Métricas resumen</h3>
+              <ul>
+                <li>Wq promedio: {{ metrics['estadisticas']['Wq_promedio'] | round(4) }} min</li>
+                <li>Ws promedio: {{ metrics['estadisticas']['Ws_promedio'] | round(4) }} min</li>
+                <li>Lq promedio: {{ metrics['estadisticas']['Lq_promedio'] | round(4) }}</li>
+                <li>ρ promedio: {{ metrics['estadisticas']['rho_promedio'] | round(4) }}</li>
+                <li>Intervalo Wq 95%: ±{{ metrics['estadisticas']['intervalo_Wq_95'] | round(4) }} min</li>
+              </ul>
+              <a class="download" href="/resultados/last_metrics.json" download>Descargar métricas (JSON)</a>
+              <a class="download" href="/download_metrics.csv">Descargar métricas (CSV)</a>
+            </div>
+          {% else %}
+            <p>No hay métricas disponibles. Ejecuta una simulación para generar resultados.</p>
+          {% endif %}
+
+          <div class="images">
+            {% if images %}
+              {% for img in images %}
+                <div class="thumb">
+                  <a href="/resultados/{{ img }}" target="_blank"><img src="/resultados/{{ img }}" alt="{{ img }}"/></a>
+                  <div class="fname">{{ img }}</div>
+                </div>
+              {% endfor %}
+            {% else %}
+              <p>No hay imágenes en la carpeta resultados.</p>
+            {% endif %}
+          </div>
+        </section>
+      </main>
+
+      <footer>
+        <p>Si no hay imágenes, ejecuta la simulación local: <code>python main.py --n 30 --output resultados</code></p>
+      </footer>
+    </div>
+    <script>
+      async function pollStatus(){
+        try{
+          const r = await fetch('/status');
+          const s = await r.json();
+          document.getElementById('statusPhase').innerText = s.phase || '';
+          document.getElementById('statusMsg').innerText = s.message || '';
+          if(s.phase === 'done'){
+            // refresh images
+            document.querySelectorAll('.images img').forEach(img=>{
+              img.src = img.src.split('?')[0] + '?v=' + Date.now();
+            });
+          }
+        }catch(e){
+          console.error(e);
+        }
+      }
+      setInterval(pollStatus, 2000);
+      pollStatus();
+    </script>
+  </body>
+</html>

@@ -1,3 +1,33 @@
+# Simulación TechClassUC — Interfaz web
+
+Permite ejecutar la simulación desde un formulario web, ver y descargar resultados.
+
+Requisitos
+- Python 3.10+
+- Instalar dependencias:
+
+```bash
+pip install -r requirements.txt
+```
+
+Ejecutar la app localmente
+
+```bash
+python app.py
+# abrir http://localhost:5000
+```
+
+Uso
+- Ingresa los parámetros en la página y presiona *Ejecutar simulación*.
+- La simulación se ejecuta en segundo plano. La página muestra el estado y refresca las imágenes cuando termina.
+- Descarga las métricas en formato JSON o CSV desde los enlaces en la sección *Resultados*.
+
+Archivos importantes
+- `app.py`: servidor Flask y lógica de ejecución.
+- `main.py`: versión CLI de la simulación.
+- `templates/index.html`: plantilla web.
+- `static/style.css`: estilos.
+- `resultados/`: carpeta donde se guardan PNG y `last_metrics.json`.
 # SIMUALACION — TechClassUC (M/M/c)
 
 Proyecto de simulación M/M/c usando SimPy y Monte Carlo.
