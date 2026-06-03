@@ -51,6 +51,21 @@
               <button type="reset">Limpiar</button>
             </div>
           </form>
+
+          <hr />
+          <h3>Procesamiento por lotes</h3>
+          <p>Puedes subir un archivo CSV con columnas: <code>lmbda,mu,c,t_sim,t_warm,n</code> o pegar JSON/CSV en el textarea.</p>
+          <form action="{{ url_for('upload') }}" method="post" enctype="multipart/form-data">
+            <label>Archivo CSV
+              <input name="file" type="file" accept=".csv" />
+            </label>
+            <label>Pegar contenido CSV o JSON
+              <textarea name="bulk_text" rows="6" placeholder='[ {"lmbda":10,"mu":4,"c":3,"t_sim":480,"t_warm":60,"n":30} ]'></textarea>
+            </label>
+            <div class="buttons">
+              <button type="submit" class="primary">Enviar lote</button>
+            </div>
+          </form>
         </section>
 
         <section class="panel results-panel">
@@ -86,6 +101,9 @@
             {% else %}
               <p>No hay imágenes en la carpeta resultados.</p>
             {% endif %}
+          </div>
+          <div class="batch-download">
+            <a href="/download_batch">Descargar resultados de lote (ZIP)</a>
           </div>
         </section>
       </main>

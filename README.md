@@ -21,6 +21,10 @@ Uso
 - Ingresa los parámetros en la página y presiona *Ejecutar simulación*.
 - La simulación se ejecuta en segundo plano. La página muestra el estado y refresca las imágenes cuando termina.
 - Descarga las métricas en formato JSON o CSV desde los enlaces en la sección *Resultados*.
+ - Ingresa los parámetros en la página y presiona *Ejecutar simulación*.
+ - La simulación se ejecuta en segundo plano. La página muestra el estado y refresca las imágenes cuando termina.
+ - Descarga las métricas en formato JSON o CSV desde los enlaces en la sección *Resultados*.
+ - Procesamiento por lotes: sube un CSV con columnas `lmbda,mu,c,t_sim,t_warm,n` o pega JSON/CSV en el textarea; la app generará `resultados/batch_results.zip`.
 
 Archivos importantes
 - `app.py`: servidor Flask y lógica de ejecución.

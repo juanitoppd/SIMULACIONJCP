@@ -15,6 +15,8 @@ from flask import (
     jsonify,
     Response,
 )
+import zipfile
+import tempfile
 
 from analitico import mmc_rho
 from montecarlo import correr_replicas
@@ -120,6 +122,109 @@ def background_worker(params: dict, output_dir: str = 'resultados') -> None:
         write_status({'phase': 'done', 'message': 'Simulación completada', 'progress': 100}, output_dir)
     except Exception as e:
         write_status({'phase': 'error', 'message': str(e)}, output_dir)
+
+
+def process_bulk_items(items: list, output_dir: str = 'resultados') -> str:
+    """Process a list of parameter dicts, save per-case results and return path to ZIP file."""
+    os.makedirs(output_dir, exist_ok=True)
+    tmpdir = tempfile.mkdtemp(prefix='batch_')
+    files_to_zip = []
+    for idx, params in enumerate(items, start=1):
+        prefix = f'case_{idx}_'
+        write_status({'phase': 'running_batch', 'message': f'Procesando caso {idx}/{len(items)}', 'progress': int(100*idx/len(items))}, output_dir)
+        try:
+            resumen = run_simulation(params, output_dir=output_dir)
+            # save resumen per case
+            case_json = os.path.join(tmpdir, f'{prefix}metrics.json')
+            with open(case_json, 'w', encoding='utf-8') as f:
+                json.dump(resumen, f, indent=2, default=str)
+            files_to_zip.append(case_json)
+            # copy generated images for this run (they use fixed names) and rename with prefix
+            for fname in ('evolucion_temporal.png','histograma_wq.png','distribucion_medias_wq.png','wq_vs_c.png','rho_vs_lambda.png'):
+                src = os.path.join(output_dir, fname)
+                if os.path.exists(src):
+                    dest = os.path.join(tmpdir, prefix + fname)
+                    try:
+                        from shutil import copy2
+                        copy2(src, dest)
+                        files_to_zip.append(dest)
+                    except Exception:
+                        pass
+        except Exception as e:
+            errfile = os.path.join(tmpdir, f'{prefix}error.txt')
+            with open(errfile, 'w', encoding='utf-8') as f:
+                f.write(str(e))
+            files_to_zip.append(errfile)
+
+    # create zip
+    zip_path = os.path.join(output_dir, 'batch_results.zip')
+    with zipfile.ZipFile(zip_path, 'w', compression=zipfile.ZIP_DEFLATED) as zf:
+        for path in files_to_zip:
+            arcname = os.path.basename(path)
+            zf.write(path, arcname=arcname)
+
+    write_status({'phase': 'done_batch', 'message': 'Batch completado', 'zip': zip_path}, output_dir)
+    return zip_path
+
+
+@app.route('/upload', methods=['POST'])
+def upload():
+    # Accept file upload or pasted text
+    file = request.files.get('file')
+    bulk_text = request.form.get('bulk_text', '').strip()
+    items = []
+    try:
+        if file and file.filename:
+            content = file.read().decode('utf-8')
+            # try parse CSV
+            import csv as _csv
+            reader = _csv.DictReader(content.splitlines())
+            for row in reader:
+                params = {k: float(v) if '.' in v or v.isdigit() else v for k,v in row.items() if v is not None}
+                # cast specific fields
+                for key in ('c','n'):
+                    if key in params:
+                        params[key] = int(float(params[key]))
+                items.append(params)
+        elif bulk_text:
+            # try JSON first
+            try:
+                parsed = json.loads(bulk_text)
+                if isinstance(parsed, list):
+                    items = parsed
+                elif isinstance(parsed, dict):
+                    items = [parsed]
+            except Exception:
+                # assume CSV text
+                import csv as _csv
+                reader = _csv.DictReader(bulk_text.splitlines())
+                for row in reader:
+                    params = {k: float(v) if '.' in v or v.isdigit() else v for k,v in row.items() if v is not None}
+                    for key in ('c','n'):
+                        if key in params:
+                            params[key] = int(float(params[key]))
+                    items.append(params)
+
+        if not items:
+            flash('No se encontraron parámetros en el archivo o texto.', 'danger')
+            return redirect(url_for('index'))
+
+        # start background thread for batch
+        thread = threading.Thread(target=process_bulk_items, args=(items,'resultados'), daemon=True)
+        thread.start()
+        flash(f'Lote iniciado ({len(items)} casos). Se generará resultados/batch_results.zip', 'success')
+    except Exception as e:
+        flash(f'Error al procesar lote: {e}', 'danger')
+
+    return redirect(url_for('index'))
+
+
+@app.route('/download_batch')
+def download_batch():
+    path = os.path.join('resultados','batch_results.zip')
+    if os.path.exists(path):
+        return send_from_directory('resultados','batch_results.zip', as_attachment=True)
+    return Response('No batch results', status=404)
 
 
 
