@@ -54,6 +54,12 @@ input[type=number], input[type=text], textarea, input[type=file]{width:100%;padd
 .download{display:inline-block;margin-top:8px;background:#f7fbff;border:1px solid #dbeaf6;padding:8px 10px;border-radius:6px;color:var(--accent);text-decoration:none}
 .download:hover{text-decoration:underline}
 
+/* Metric cards */
+.metrics-cards{display:flex;flex-wrap:wrap;gap:12px;margin:10px 0}
+.metric-card{background:linear-gradient(180deg,#fff,#fbfdff);border:1px solid #eef6fb;padding:12px;border-radius:8px;min-width:160px;flex:1 1 160px;box-shadow:0 4px 12px rgba(23,105,170,0.04)}
+.metric-card .label{font-size:12px;color:var(--muted)}
+.metric-card .value{font-size:20px;color:var(--accent-3);font-weight:600;margin-top:6px}
+
 .batch-download a{color:var(--accent);text-decoration:none}
 
 .status{padding:8px;border-radius:6px;background:#fff;border:1px solid #eef6fb;margin-bottom:8px}
