@@ -29,7 +29,8 @@ from visualizacion import (
     plot_wq_vs_c,
 )
 
-app = Flask(__name__, static_folder='resultados', template_folder='templates')
+ # Servir archivos estáticos desde la carpeta `static` (CSS, imágenes, favicon)
+app = Flask(__name__, static_folder='static', static_url_path='/static', template_folder='templates')
 app.secret_key = os.environ.get('FLASK_SECRET', 'dev_secret')
 
 
