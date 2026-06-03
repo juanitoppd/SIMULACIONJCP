@@ -372,6 +372,16 @@ def archivos(filename):
     return send_from_directory('resultados', filename)
 
 
+@app.route('/results_list')
+def results_list():
+    """Devuelve JSON con la lista de imágenes en la carpeta `resultados`."""
+    resultados_dir = os.path.abspath('resultados')
+    archivos = []
+    if os.path.isdir(resultados_dir):
+        archivos = sorted([f for f in os.listdir(resultados_dir) if any(f.lower().endswith(ext) for ext in ('.png', '.jpg', '.jpeg'))])
+    return jsonify({'images': archivos})
+
+
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)
