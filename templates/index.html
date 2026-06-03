@@ -51,8 +51,9 @@
             </label>
 
             <div class="buttons">
-              <button type="submit" class="primary">Ejecutar simulación</button>
+                <button type="submit" class="primary">Ejecutar simulación</button>
               <button type="reset">Limpiar</button>
+                <button id="demoBtn" type="button" class="btn-outline">Generar demo</button>
             </div>
           </form>
 
@@ -120,6 +121,18 @@
       </footer>
     </div>
     <script>
+      // Botón demo: envía una petición POST para correr una simulación corta
+      document.getElementById('demoBtn').addEventListener('click', async ()=>{
+        const payload = new FormData();
+        payload.set('lmbda', '10');
+        payload.set('mu', '4');
+        payload.set('c', '3');
+        payload.set('t_sim', '60');
+        payload.set('t_warm', '10');
+        payload.set('n', '6');
+        const r = await fetch('/run', {method:'POST', body: payload});
+        if(r.redirected) window.location = r.url; else pollStatus();
+      });
       async function pollStatus(){
         try{
           const r = await fetch('/status');
