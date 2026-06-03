@@ -151,6 +151,30 @@
       }
       setInterval(pollStatus, 2000);
       pollStatus();
+      async function refreshGallery(){
+        try{
+          const r = await fetch('/results_list');
+          if(!r.ok) return;
+          const j = await r.json();
+          const container = document.querySelector('.images');
+          container.innerHTML = '';
+          if(j.images && j.images.length){
+            for(const img of j.images){
+              const div = document.createElement('div'); div.className = 'thumb';
+              const a = document.createElement('a'); a.href = '/resultados/' + img; a.target = '_blank';
+              const im = document.createElement('img'); im.src = '/resultados/' + img + '?v=' + Date.now(); im.alt = img;
+              a.appendChild(im);
+              const fname = document.createElement('div'); fname.className = 'fname'; fname.innerText = img;
+              div.appendChild(a); div.appendChild(fname);
+              container.appendChild(div);
+            }
+          } else {
+            const ph = document.createElement('div'); ph.className = 'thumb placeholder';
+            ph.innerHTML = '<img src="/static/images/placeholder.svg" alt="placeholder" /><div class="fname">Sin imágenes generadas</div>';
+            container.appendChild(ph);
+          }
+        }catch(e){console.error(e)}
+      }
     </script>
   </body>
 </html>
